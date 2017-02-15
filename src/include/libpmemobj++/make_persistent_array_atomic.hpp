@@ -129,6 +129,7 @@ void
 delete_persistent_atomic(typename detail::pp_if_array<T>::type &ptr,
 			 std::size_t N)
 {
+	(void) N;
 	if (ptr == nullptr)
 		return;
 
