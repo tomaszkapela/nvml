@@ -52,6 +52,8 @@ typedef struct stat os_stat_t;
 typedef struct _stat64 os_stat_t;
 #define os_fstat	_fstat64
 #define os_lseek	_lseeki64
+
+/*#define MAX_EXT_PATH 32276 */
 #endif
 
 #define os_close close

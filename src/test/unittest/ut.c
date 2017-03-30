@@ -595,8 +595,8 @@ enum_handles(int op)
 		}
 
 		int ret = snprintf(name, MAX_PATH, "%.*S: %.*S",
-			type_info->Name.Length / 2, type_info->Name.Buffer,
-			wname.Length / 2, wname.Buffer);
+			MAX_PATH / 2, type_info->Name.Buffer,
+			MAX_PATH / 2, wname.Buffer);
 
 		if (ret < 0 || ret >= MAX_PATH)
 			UT_FATAL("!snprintf");
