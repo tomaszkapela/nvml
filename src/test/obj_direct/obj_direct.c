@@ -97,10 +97,11 @@ main(int argc, char *argv[])
 	PMEMobjpool **pops = MALLOC(npools * sizeof(PMEMobjpool *));
 	UT_ASSERTne(pops, NULL);
 
-	char path[MAX_PATH_LEN];
+	size_t length = strlen(dir) + MAX_PATH_LEN;
+	char *path = MALLOC(length);
 	for (int i = 0; i < npools; ++i) {
-		int ret = snprintf(path, MAX_PATH_LEN, "%s/testfile%d", dir, i);
-		if (ret < 0 || ret >= MAX_PATH_LEN)
+		int ret = snprintf(path, length, "%s/testfile%d", dir, i);
+		if (ret < 0 || ret >= length)
 			UT_FATAL("!snprintf");
 		pops[i] = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
 				S_IWUSR | S_IRUSR);
@@ -164,6 +165,7 @@ main(int argc, char *argv[])
 	pthread_cond_destroy(&sync_cond2);
 	pthread_mutex_destroy(&lock1);
 	pthread_mutex_destroy(&lock2);
+	FREE(path);
 	FREE(pops);
 	FREE(tmpoids);
 	FREE(oids);
