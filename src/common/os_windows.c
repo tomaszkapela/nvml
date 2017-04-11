@@ -247,10 +247,10 @@ os_mkstemp(char *temp)
 	 * the last file descriptor is closed.  Also, it prevents opening
 	 * this file from another process.
 	 */
-	 ret = _wopen(npath, O_RDWR | O_CREAT | O_EXCL | O_TEMPORARY,
+	ret = _wopen(npath, O_RDWR | O_CREAT | O_EXCL | O_TEMPORARY,
 		S_IWRITE | S_IREAD);
 
 out:
-	 Free(npath);
-	 return ret;
+	Free(npath);
+	return ret;
 }
