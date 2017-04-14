@@ -1004,6 +1004,20 @@ function require_no_unicode {
 }
 
 #
+# require_short_path -- require $DIR length less than 256 characters
+#
+function require_short_path {
+    $Env:DIRSUFFIX = ""
+
+    if ($DIR.Length -ge 256) {
+        if (-Not $Env:UNITTEST_QUIET) {
+            Write-Host "${Env:UNITTEST_NAME}: SKIP required: test directory path below 256 characters"
+        }
+        exit 0
+    }
+}
+
+#
 # setup -- print message that test setup is commencing
 #
 function setup {
@@ -1175,7 +1189,8 @@ if ($DIR) {
     # if user passed it in...
     sv -Name DIR ($DIR + "\" + $curtestdir + $Env:UNITTEST_NUM)
 } else {
-    $tail = "\" + $curtestdir + $Env:UNITTEST_NUM
+    $tail = "\" + $Env:DIRSUFFIX + "\" + $curtestdir + $Env:UNITTEST_NUM
+    #$tail = "\" + $curtestdir + $Env:UNITTEST_NUM
     # choose based on FS env variable
     switch ($Env:FS) {
         'pmem' {

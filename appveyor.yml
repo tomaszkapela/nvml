@@ -40,7 +40,7 @@ test_script:
     if ($Env:CONFIGURATION -eq "Debug") {
         cd src/test
         md /temp
-        echo "$Local:LONGDIR = `"LoremipsumdolorsitametconsecteturadipiscingelitVivamuslacinianibhattortordictumsollicitudinNullamvariusvestibulumligulaetegestaselitsemperidMaurisultriciesligulaeuipsumtinciduntluctusMorbimaximusvariusdolorid`"" > testconfig.ps1
+        echo "`$Local:LONGDIR = `"LoremipsumdolorsitametconsecteturadipiscingelitVivamuslacinianibhattortordictumsollicitudinNullamvariusvestibulumligulaetegestaselitsemperidMaurisultriciesligulaeuipsumtinciduntluctusMorbimaximusvariusdolorid`"" > testconfig.ps1
         echo "`$Env:DIRSUFFIX = `"`$LONGDIR\`$LONGDIR\`$LONGDIR\`$LONGDIR\`$LONGDIR\`$LONGDIR\`$LONGDIR\`$LONGDIR\`$LONGDIR\`$LONGDIR\`$LONGDIR`"" >> testconfig.ps1
         echo "`$Env:NON_PMEM_FS_DIR = `"\temp`"" >> testconfig.ps1
         echo "`$Env:PMEM_FS_DIR = `"\temp`"" >> testconfig.ps1

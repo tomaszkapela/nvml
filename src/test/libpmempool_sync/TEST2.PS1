@@ -47,6 +47,7 @@ $Env:UNITTEST_NUM = "2"
 
 require_test_type medium
 require_fs_type any
+require_short_path
 
 setup
 

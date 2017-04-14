@@ -69,7 +69,7 @@ util_tmpfile(const char *dir, const char *templ)
 	int oerrno;
 	int fd = -1;
 
-	size_t len = strlen(dir) + strlen(templ);
+	size_t len = strlen(dir) + strlen(templ) + 1;
 	char *fullname = Malloc(sizeof(*fullname) * len);
 	if (fullname == NULL) {
 		ERR("!Malloc");

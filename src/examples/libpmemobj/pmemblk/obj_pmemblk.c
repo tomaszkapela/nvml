@@ -379,8 +379,10 @@ main(int argc, char *argv[])
 							":");
 				assert(block_str != NULL);
 				if (pmemblk_read(pbp, buf, strtoul(block_str,
-						NULL, 10)))
+					NULL, 10))) {
 					perror("pmemblk_read failed");
+					break;
+				}
 				buf[bsize - 1] = '\0';
 				printf("%s\n", buf);
 				free(buf);

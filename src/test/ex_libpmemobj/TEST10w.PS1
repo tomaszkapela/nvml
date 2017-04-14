@@ -56,7 +56,7 @@ expect_normal_exit $Env:EXE_DIR/obj_pmemblk c $DIR/testfile1 512 `
 	z:20 z:30 `
 	r:13 r:0 r:30 r:20 r:1 `
 	e:13 r:13 w:13:rewrite r:13 `
-	> out$Env:UNITTEST_NUM.log 2>out-null
+	> out$Env:UNITTEST_NUM.log 2>$null
 
 check
 
