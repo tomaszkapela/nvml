@@ -102,6 +102,7 @@ util_tmpfile(const char *dir, const char *templ)
 	 * the filesystem.
 	 */
 
+	Free(fullname);
 	return fd;
 
 err:
