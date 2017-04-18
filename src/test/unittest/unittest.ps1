@@ -1059,7 +1059,7 @@ function setup {
         if (isDir $DIR) {
              rm -Force -Recurse $DIR
         }
-        mkdir $DIR > $null
+        md -force $DIR > $null
     }
 
     # XXX: do it before setup() is invoked
@@ -1121,6 +1121,7 @@ if (-Not $Env:CHECK_POOL) { $Env:CHECK_POOL = '0'}
 if (-Not $Env:VERBOSE) { $Env:VERBOSE = '0'}
 if (-Not $Env:EXESUFFIX) { $Env:EXESUFFIX = ".exe"}
 if (-Not $Env:SUFFIX) { $Env:SUFFIX = "😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"}
+if (-Not $Env:DIRSUFFIX) { $Env:DIRSUFFIX = ""}
 
 if ($Env:EXE_DIR -eq $null) {
     $Env:EXE_DIR = "..\..\x64\debug"
@@ -1190,7 +1191,6 @@ if ($DIR) {
     sv -Name DIR ($DIR + "\" + $curtestdir + $Env:UNITTEST_NUM)
 } else {
     $tail = "\" + $Env:DIRSUFFIX + "\" + $curtestdir + $Env:UNITTEST_NUM
-    #$tail = "\" + $curtestdir + $Env:UNITTEST_NUM
     # choose based on FS env variable
     switch ($Env:FS) {
         'pmem' {
