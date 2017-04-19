@@ -46,7 +46,7 @@ require_test_type medium
 
 setup
 
-$POOL = "$DIR/testfile"
+$POOL = "$DIR\testfile"
 $SCRIPT = "..\tools\pmemobjcli\pmemobjcli_example.posc"
 $LOG = "out${Env:UNITTEST_NUM}.log"
 

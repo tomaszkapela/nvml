@@ -39,24 +39,24 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME="obj_list_valgrind/TEST5"
+$Env:UNITTEST_NAME="obj_list_valgrind\TEST5"
 $Env:UNITTEST_NUM="5"
 
 # standard unit test setup
-. ../unittest/unittest.ps1
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 require_fs_type pmem non-pmem
 
-# XXX - there's no Windows equivalent of Valgrind/pmemcheck yet
-#configure_valgrind pmemcheck force-enable ../obj_list/obj_list
+# XXX - there's no Windows equivalent of Valgrind\pmemcheck yet
+#configure_valgrind pmemcheck force-enable ..\obj_list\obj_list
 #export VALGRIND_OPTS="--mult-stores=yes"
 
 setup
 
-create_holey_file 1M $DIR/testfile
+create_holey_file 1M $DIR\testfile
 
-expect_normal_exit $Env:EXE_DIR\obj_list$Env:EXESUFFIX $DIR/testfile `
+expect_normal_exit $Env:EXE_DIR\obj_list$Env:EXESUFFIX $DIR\testfile `
 		i:0:0 `
 		i:0:0 `
 		i:0:0 `

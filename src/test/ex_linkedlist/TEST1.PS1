@@ -53,12 +53,12 @@ require_test_type medium
 require_build_type debug nondebug
 require_no_unicode
 
-# XXX - there's no Windows equivalent of Valgrind/pmemcheck yet
+# XXX - there's no Windows equivalent of Valgrind\pmemcheck yet
 #configure_valgrind pmemcheck force-enable
 
 setup
 
-expect_normal_exit $Env:EXE_DIR/ex_linkedlist$Env:EXESUFFIX $DIR/testfile
+expect_normal_exit $Env:EXE_DIR\ex_linkedlist$Env:EXESUFFIX $DIR\testfile
 
 check
 

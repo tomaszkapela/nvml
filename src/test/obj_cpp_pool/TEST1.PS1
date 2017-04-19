@@ -55,10 +55,10 @@ setup
 # TEST1
 #
 expect_normal_exit $Env:EXE_DIR\obj_cpp_pool$Env:EXESUFFIX `
-    c $DIR/testfile "test" 20 0600
+    c $DIR\testfile "test" 20 0600
 
 expect_normal_exit $Env:EXE_DIR\obj_cpp_pool$Env:EXESUFFIX `
-    o $DIR/testfile "test"
+    o $DIR\testfile "test"
 
 check
 

@@ -190,8 +190,10 @@ char *util_concat_str(const char *s1, const char *s2);
 
 #ifndef _WIN32
 #define DIR_SEPARATOR '/'
+#define DIR_SEP_STR "/"
 #else
 #define DIR_SEPARATOR '\\'
+#define DIR_SEP_STR "\\"
 #endif
 
 #if defined(__CHECKER__)

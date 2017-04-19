@@ -33,11 +33,11 @@
 . "..\testconfig.ps1"
 
 function touch {
-    Out-File -InputObject $null -Encoding ascii -FilePath $args[0]
+    out-file -InputObject $null -Encoding ascii -FilePath $args[0]
 }
 
 function epoch {
-    return [int64](([datetime]::UtcNow)-(get-date "1/1/1970")).TotalMilliseconds
+    return [int64](([datetime]::UtcNow)-(get-date "1\1\1970")).TotalMilliseconds
 }
 
 function isDir {
@@ -275,14 +275,14 @@ function create_nonzeroed_file {
 #   does not match the information from pool set file. The last line describes
 #   a remote replica.
 #
-#	create_poolset ./pool.set 16M:testfile1 32M:testfile2:z \
+#	create_poolset .\pool.set 16M:testfile1 32M:testfile2:z \
 #				R 48M:testfile3:n:11M:0400 \
 #				M remote_node:remote_pool.set
 #
 #
 function create_poolset {
     $psfile = $args[0]
-    echo "PMEMPOOLSET" | out-file -encoding utf8 $psfile
+    echo "PMEMPOOLSET" | out-file -encoding utf8 -LiteralPath $psfile
     for ($i=1;$i -lt $args.count;$i++) {
         if ($args[$i] -eq "M" -Or $args[$i] -eq 'm') { # remote replica
             $i++
@@ -290,11 +290,11 @@ function create_poolset {
             $fparms = ($cmd.Split("{:}"))
             $node = $fparms[0]
             $desc = $fparms[1]
-            echo "REPLICA $node $desc" | out-file -Append -encoding utf8 $psfile
+            echo "REPLICA $node $desc" | out-file -Append -encoding utf8 -LiteralPath $psfile
             continue
         }
         if ($args[$i] -eq "R" -Or $args[$i] -eq 'r') {
-            echo "REPLICA" | out-file -Append -encoding utf8 $psfile
+            echo "REPLICA" | out-file -Append -encoding utf8 -LiteralPath $psfile
             continue
         }
         $cmd = $args[$i]
@@ -306,6 +306,10 @@ function create_poolset {
             $tmp = ($cmd.Split("{:\\}",2,[System.StringSplitOptions]::RemoveEmptyEntries))
             $cmd = $tmp[0] + ":" + $tmp[1].SubString(2)
             $driveLetter = $tmp[1].SubString(0,2)
+        } elseif ($cmd -match ":\\\\\?\\([a-zA-Z]):\\") {
+            $tmp = ($cmd.Split("{:}",2,[System.StringSplitOptions]::RemoveEmptyEntries))
+            $cmd = $tmp[0] + ":" + $tmp[1].SubString(6)
+            $driveLetter = $tmp[1].SubString(0,6)
         }
         $fparms = ($cmd.Split("{:}"))
         $fsize = $fparms[0]
@@ -341,7 +345,7 @@ function create_poolset {
         #     chmod $mode $fpath
         # fi
 
-        echo "$fsize $fpath" | out-file -Append -encoding utf8 $psfile
+        echo "$fsize $fpath" | out-file -Append -encoding utf8 -LiteralPath $psfile
     } # for args
 }
 
@@ -577,7 +581,7 @@ function require_binary() {
 # easily bail when a cmd fails
 #
 function check {
-    #	../match $(find . -regex "[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
+    #	..\match $(find . -regex "[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
     $perl = Get-Command -Name perl -ErrorAction SilentlyContinue
     If ($perl -eq $null) {
         Write-Error "Perl is missing, cannot check test results"
@@ -1218,7 +1222,7 @@ if ($DIR) {
             }
         }
         'none' {
-            sv -Name DIR "/nul/not_existing_dir/${curtestdir}${Env:UNITTEST_NUM}"
+            sv -Name DIR "\nul\not_existing_dir\${curtestdir}${Env:UNITTEST_NUM}"
         }
         default {
             if (-Not $Env:UNITTEST_QUIET) {

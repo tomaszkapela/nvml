@@ -69,7 +69,7 @@ create_poolset $POOLSET `
 
 # Create a pool
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+cat -Encoding Ascii $LOG | out-file -append -encoding ascii -LiteralPath $LOG_TEMP
 
 # Delete a part from the second replica
 rm $DIR\part10 -Force -ea si
@@ -78,12 +78,12 @@ rm $DIR\part10 -Force -ea si
 $FLAGS = "1" # invalid flag
 expect_abnormal_exit $Env:EXE_DIR\libpmempool_sync$Env:EXESUFFIX `
 	$POOLSET $FLAGS
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+cat -Encoding Ascii $LOG | out-file -append -encoding ascii -LiteralPath $LOG_TEMP
 
 $FLAGS = "1024"
 expect_abnormal_exit $Env:EXE_DIR\libpmempool_sync$Env:EXESUFFIX `
 	$POOLSET $FLAGS
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+cat -Encoding Ascii $LOG | out-file -append -encoding ascii -LiteralPath $LOG_TEMP
 
 mv -Force $LOG_TEMP $LOG
 check

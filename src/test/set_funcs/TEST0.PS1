@@ -48,6 +48,6 @@ require_test_type medium
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\set_funcs$Env:EXESUFFIX $DIR/testfile $DIR
+expect_normal_exit $Env:EXE_DIR\set_funcs$Env:EXESUFFIX $DIR\testfile $DIR
 
 pass

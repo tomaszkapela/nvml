@@ -31,18 +31,18 @@
 #
 
 #
-# src/test/ex_libpmemobj/TEST0 -- unit test for libpmemobj examples
+# src\test\ex_libpmemobj\TEST0 -- unit test for libpmemobj examples
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "ex_libpmemobj/TEST0"
+$Env:UNITTEST_NAME = "ex_libpmemobj\TEST0"
 $Env:UNITTEST_NUM = "0"
 
 # standard unit test setup
-. ../unittest/unittest.PS1
+. ..\unittest\unittest.PS1
 
 require_test_type medium
 require_build_type debug nondebug
@@ -50,8 +50,8 @@ require_no_unicode
 
 setup
 
-expect_normal_exit $Env:EXE_DIR/pi $DIR/testfile1 c 2 20 > out$Env:UNITTEST_NUM.log 2>&1
-expect_normal_exit $Env:EXE_DIR/pi $DIR/testfile1 p >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\pi $DIR\testfile1 c 2 20 > out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\pi $DIR\testfile1 p >> out$Env:UNITTEST_NUM.log 2>&1
 
 check
 

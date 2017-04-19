@@ -68,8 +68,8 @@ check_no_files `
 	$DIR\rep.part2
 
 # Try to remove files without force flag
-expect_abnormal_exit $PMEMPOOL rm -v $DIR\pool.obj 2>&1 | out-file -width 1024 $LOG
-expect_abnormal_exit $PMEMPOOL rm -sv $DIR\pool.set 2>&1 | out-file -append -width 1024 $LOG
+expect_abnormal_exit $PMEMPOOL rm -v $DIR\pool.obj 2>&1 | out-file -width 1024 -LiteralPath $LOG
+expect_abnormal_exit $PMEMPOOL rm -sv $DIR\pool.set 2>&1 | out-file -append -width 1024 -LiteralPath $LOG
 
 # Try to remove files with force flag
 expect_normal_exit $PMEMPOOL rm -flv `

@@ -50,7 +50,7 @@ require_no_unicode
 
 setup
 
-expect_normal_exit $Env:EXE_DIR/ex_linkedlist$Env:EXESUFFIX $DIR/testfile
+expect_normal_exit $Env:EXE_DIR\ex_linkedlist$Env:EXESUFFIX $DIR\testfile
 
 check
 

@@ -31,14 +31,14 @@
 #
 
 #
-# src/test/obj_heap/TEST0 -- unit test for obj_heap interface
+# src\test\obj_heap\TEST0 -- unit test for obj_heap interface
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "obj_heap/TEST0"
+$Env:UNITTEST_NAME = "obj_heap\TEST0"
 $Env:UNITTEST_NUM = "0"
 
 

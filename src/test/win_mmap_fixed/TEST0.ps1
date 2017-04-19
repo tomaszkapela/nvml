@@ -40,7 +40,7 @@ $Env:UNITTEST_NAME = "win_mmap_fixed\TEST0"
 $Env:UNITTEST_NUM = "0"
 
 # standard unit test setup
-. ../unittest/unittest.ps1
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 require_fs_type any

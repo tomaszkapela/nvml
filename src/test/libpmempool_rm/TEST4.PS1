@@ -30,14 +30,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_rm/TEST4 -- test pmempool_rm with opened files
+# libpmempool_rm\TEST4 -- test pmempool_rm with opened files
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "libpmempool_rm/TEST4"
+$Env:UNITTEST_NAME = "libpmempool_rm\TEST4"
 $Env:UNITTEST_NUM = "4"
 
 
@@ -51,17 +51,17 @@ setup
 
 enable_log_append
 
-create_poolset $DIR/pool.set 32M:$DIR/pool.obj.1:x 32M:$DIR/pool.obj.2:x
+create_poolset $DIR\pool.set 32M:$DIR\pool.obj.1:x 32M:$DIR\pool.obj.2:x
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/pool.obj
-expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/pool.set
-check_files $DIR/pool.obj $DIR/pool.set $DIR/pool.obj.1
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR\pool.obj
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR\pool.set
+check_files $DIR\pool.obj $DIR\pool.set $DIR\pool.obj.1
 
-expect_normal_exit $Env:EXE_DIR\libpmempool_rm$Env:EXESUFFIX -o $DIR/pool.obj
-check_files $DIR/pool.obj
+expect_normal_exit $Env:EXE_DIR\libpmempool_rm$Env:EXESUFFIX -o $DIR\pool.obj
+check_files $DIR\pool.obj
 
-expect_normal_exit $Env:EXE_DIR\libpmempool_rm$Env:EXESUFFIX -o $DIR/pool.set
-check_files $DIR/pool.set $DIR/pool.obj.1 $DIR/pool.obj.2
+expect_normal_exit $Env:EXE_DIR\libpmempool_rm$Env:EXESUFFIX -o $DIR\pool.set
+check_files $DIR\pool.set $DIR\pool.obj.1 $DIR\pool.obj.2
 
 check
 

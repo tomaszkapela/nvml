@@ -30,14 +30,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_rm/TEST3 -- test pmempool_rm with directories
+# libpmempool_rm\TEST3 -- test pmempool_rm with directories
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "libpmempool_rm/TEST3"
+$Env:UNITTEST_NAME = "libpmempool_rm\TEST3"
 $Env:UNITTEST_NUM = "3"
 
 
@@ -51,12 +51,12 @@ setup
 
 enable_log_append
 
-mkdir $DIR/dir.1 | out-null
-mkdir $DIR/dir.2 | out-null
-mkdir $DIR/dir.2/dir.3 | out-null
+mkdir $DIR\dir.1 | out-null
+mkdir $DIR\dir.2 | out-null
+mkdir $DIR\dir.2\dir.3 | out-null
 
-expect_normal_exit $Env:EXE_DIR\libpmempool_rm$Env:EXESUFFIX $DIR/dir.1 $DIR/dir.2 $DIR/dir.2/dir.3
-expect_normal_exit $Env:EXE_DIR\libpmempool_rm$Env:EXESUFFIX -f $DIR/dir.1 $DIR/dir.2 $DIR/dir.2/dir.3
+expect_normal_exit $Env:EXE_DIR\libpmempool_rm$Env:EXESUFFIX $DIR\dir.1 $DIR\dir.2 $DIR\dir.2\dir.3
+expect_normal_exit $Env:EXE_DIR\libpmempool_rm$Env:EXESUFFIX -f $DIR\dir.1 $DIR\dir.2 $DIR\dir.2\dir.3
 
 check
 

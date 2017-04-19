@@ -31,14 +31,14 @@
 #
 
 #
-# src/test/ex_libpmem/TEST0 -- unit test for libpmem examples
+# src\test\ex_libpmem\TEST0 -- unit test for libpmem examples
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "ex_libpmem/TEST0"
+$Env:UNITTEST_NAME = "ex_libpmem\TEST0"
 $Env:UNITTEST_NUM = "0"
 
 # standard unit test setup
@@ -51,13 +51,13 @@ require_short_path
 
 setup
 
-create_nonzeroed_file 2M 0 $DIR/testfile1
+create_nonzeroed_file 2M 0 $DIR\testfile1
 
-expect_normal_exit $Env:EXE_DIR/simple_copy $DIR/testfile1 $DIR/testfile2 `
+expect_normal_exit $Env:EXE_DIR\simple_copy $DIR\testfile1 $DIR\testfile2 `
 	> out$Env:UNITTEST_NUM.log 2>&1
 
 touch cmp$Env:UNITTEST_NUM.log
-cmp $DIR/testfile1 $DIR/testfile2 4096 > cmp$Env:UNITTEST_NUM.log 2>&1
+cmp $DIR\testfile1 $DIR\testfile2 4096 > cmp$Env:UNITTEST_NUM.log 2>&1
 
 check
 
