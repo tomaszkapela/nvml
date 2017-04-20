@@ -37,7 +37,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "libpmempool_sync\TEST0"
+$Env:UNITTEST_NAME = "libpmempool_sync/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 # standard unit test setup
@@ -100,7 +100,7 @@ expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET | out-file -append -enco
 
 # Find root offset
 $TMP_FILE = "$DIR\obj_info"
-expect_normal_exit $PMEMPOOL info -f obj -o $DIR\testfile1 > $TMP_FILE
+expect_normal_exit $PMEMPOOL info -f obj -o $DIR\testfile1 | out-file -encoding ascii -LiteralPath $TMP_FILE
 
 $ROOT_ADDR = (Get-Content $TMP_FILE | Select-String -pattern "Root offset").ToString().Split(':')[1]
 

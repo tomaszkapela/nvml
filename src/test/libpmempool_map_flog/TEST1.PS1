@@ -38,7 +38,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "libpmempool_map_flog\TEST1"
+$Env:UNITTEST_NAME = "libpmempool_map_flog/TEST1"
 $Env:UNITTEST_NUM = "1"
 
 . ..\unittest\unittest.ps1

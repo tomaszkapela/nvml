@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "log_pool\TEST22"
+$Env:UNITTEST_NAME = "log_pool/TEST22"
 $Env:UNITTEST_NUM = "22"
 
 

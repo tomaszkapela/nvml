@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME="obj_list_macro\TEST3"
+$Env:UNITTEST_NAME="obj_list_macro/TEST3"
 $Env:UNITTEST_NUM="3"
 
 # standard unit test setup

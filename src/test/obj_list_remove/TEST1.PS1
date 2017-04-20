@@ -41,7 +41,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME="obj_list_remove\TEST1"
+$Env:UNITTEST_NAME="obj_list_remove/TEST1"
 $Env:UNITTEST_NUM="1"
 
 # standard unit test setup

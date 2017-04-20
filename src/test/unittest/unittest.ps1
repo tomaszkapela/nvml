@@ -33,7 +33,7 @@
 . "..\testconfig.ps1"
 
 function touch {
-    out-file -InputObject $null -Encoding ascii -FilePath $args[0]
+    out-file -InputObject $null -Encoding ascii -LiteralPath $args[0]
 }
 
 function epoch {
@@ -1054,7 +1054,7 @@ function setup {
         sv -Name MCSTR ""
     }
 
-    Write-Host "${Env:UNITTEST_NAME}: SETUP ($Env:TYPE\$REAL_FS\$Env:BUILD$MCSTR)"
+    Write-Host "${Env:UNITTEST_NAME}: SETUP ($Env:TYPE\$REAL_FS/$Env:BUILD$MCSTR)"
 
     rm -Force check_pool_${Env:BUILD}_${Env:UNITTEST_NUM}.log -ErrorAction SilentlyContinue
 

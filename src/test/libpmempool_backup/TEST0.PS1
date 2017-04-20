@@ -38,7 +38,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "libpmempool_backup\TEST0"
+$Env:UNITTEST_NAME = "libpmempool_backup/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 . ..\unittest\unittest.ps1

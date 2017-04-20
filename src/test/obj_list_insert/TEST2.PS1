@@ -40,7 +40,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME="obj_list_insert\TEST2"
+$Env:UNITTEST_NAME="obj_list_insert/TEST2"
 $Env:UNITTEST_NUM="2"
 
 # standard unit test setup

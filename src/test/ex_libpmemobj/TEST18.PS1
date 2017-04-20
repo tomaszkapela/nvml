@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "ex_libpmemobj\TEST18"
+$Env:UNITTEST_NAME = "ex_libpmemobj/TEST18"
 $Env:UNITTEST_NUM = "18"
 
 # standard unit test setup

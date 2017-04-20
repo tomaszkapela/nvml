@@ -38,7 +38,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "libpmempool_map_flog\TEST3"
+$Env:UNITTEST_NAME = "libpmempool_map_flog/TEST3"
 $Env:UNITTEST_NUM = "3"
 
 . ..\unittest\unittest.ps1
@@ -93,7 +93,7 @@ echo $spcmd | out-file -append -encoding ascii -LiteralPath $LOG_TEMP
 &$PMEMSPOIL $POOL $spcmd
 
 expect_normal_exit $EXE -r 1 -t btt -a 1 $POOL
-cat -Encoding Ascii $LOG | out-file -LiteralPath -append -encoding ascii -LiteralPath $LOG_TEMP
+cat -Encoding Ascii $LOG | out-file -append -encoding ascii -LiteralPath $LOG_TEMP
 
 expect_normal_exit $PMEMPOOL info $POOL -f btt -m | `
     Select-String -encoding ASCII -Pattern "error" | %{$_.Line} | out-file -append -encoding ascii -LiteralPath $LOG_TEMP
