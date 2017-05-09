@@ -291,7 +291,7 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 
 	/* create a pmem file and memory map it */
 	if ((mb->pmem_addr = pmem_map_file(args->fname, mb->fsize,
-					   PMEM_FILE_EXCL,
+					   PMEM_FILE_CREATE | PMEM_FILE_EXCL,
 					   args->fmode, NULL, NULL)) == NULL) {
 		perror(args->fname);
 		ret = -1;
@@ -407,7 +407,7 @@ pmem_memset_costructor(void)
 	memset_info.clos = memset_clo;
 	memset_info.nclos = ARRAY_SIZE(memset_clo);
 	memset_info.opts_size = sizeof(struct memset_args);
-	memset_info.rm_file = false;
+	memset_info.rm_file = true;
 	memset_info.allow_poolset = false;
 	REGISTER_BENCHMARK(memset_info);
 };
