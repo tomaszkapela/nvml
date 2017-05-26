@@ -82,6 +82,10 @@ int rpmem_close(RPMEMpool *rpp);
 
 int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length,
 		unsigned lane);
+
+int rpmem_persist_no_drain(RPMEMpool *rpp, size_t offset, size_t length,
+		unsigned lane);
+
 int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length,
 		unsigned lane);
 

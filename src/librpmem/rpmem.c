@@ -595,6 +595,35 @@ rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)
 }
 
 /*
+ * rpmem_persist_no_drain -- persist operation on target node without
+ * confirmation
+ *
+ * rpp           -- remote pool handle
+ * offset        -- offset in pool
+ * length        -- length of persist operation
+ * lane          -- lane number
+ */
+int
+rpmem_persist_no_drain(RPMEMpool *rpp, size_t offset, size_t length,
+			unsigned lane)
+{
+	if (unlikely(rpp->error)) {
+		errno = rpp->error;
+		return -1;
+	}
+
+	int ret = rpmem_fip_persist_no_drain(rpp->fip, offset, length, lane);
+	if (unlikely(ret)) {
+		ERR("persist operation failed");
+		rpp->error = ret;
+		errno = rpp->error;
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
  * rpmem_read -- read data from remote pool:
  *
  * rpp           -- remote pool handle

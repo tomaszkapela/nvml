@@ -40,6 +40,7 @@ LIBRPMEM_0.1 {
 		rpmem_close;
 		rpmem_remove;
 		rpmem_persist;
+		rpmem_persist_no_drain;
 		rpmem_read;
 		rpmem_check_version;
 		rpmem_errormsg;

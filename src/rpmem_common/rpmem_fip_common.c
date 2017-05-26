@@ -238,24 +238,24 @@ struct rpmem_fip_lane_attr {
 static struct rpmem_fip_lane_attr
 rpmem_fip_lane_attrs[MAX_RPMEM_FIP_NODE][MAX_RPMEM_PM] = {
 	[RPMEM_FIP_NODE_CLIENT][RPMEM_PM_GPSPM] = {
-		.n_per_sq = 2, /* WRITE + SEND */
+		.n_per_sq = 3, /* WRITE + SEND */
 		.n_per_rq = 1, /* RECV */
-		.n_per_cq = 3,
+		.n_per_cq = 4,
 	},
 	[RPMEM_FIP_NODE_CLIENT][RPMEM_PM_APM] = {
-		.n_per_sq = 2, /* WRITE + READ */
+		.n_per_sq = 3, /* WRITE + READ */
 		.n_per_rq = 0, /* unused */
-		.n_per_cq = 2,
+		.n_per_cq = 3,
 	},
 	[RPMEM_FIP_NODE_SERVER][RPMEM_PM_GPSPM] = {
 		.n_per_sq = 1, /* SEND */
 		.n_per_rq = 1, /* RECV */
-		.n_per_cq = 3,
+		.n_per_cq = 4,
 	},
 	[RPMEM_FIP_NODE_SERVER][RPMEM_PM_APM] = {
 		.n_per_sq = 0, /* unused */
 		.n_per_rq = 0, /* unused */
-		.n_per_cq = 1,
+		.n_per_cq = 2,
 	},
 };
 
