@@ -94,6 +94,7 @@ typedef void (*rpmem_fip_fini_fn)(struct rpmem_fip *fip);
  */
 struct rpmem_fip_ops {
 	rpmem_fip_persist_fn persist;
+	rpmem_fip_persist_fn persist_no_drain;
 	rpmem_fip_process_fn process;
 	rpmem_fip_init_fn lanes_init;
 	rpmem_fip_fini_fn lanes_fini;
@@ -703,6 +704,33 @@ rpmem_fip_persist_apm(struct rpmem_fip *fip, size_t offset,
 }
 
 /*
+ * rpmem_fip_persist_apm_no_drain -- (internal) perform persist operation for APM
+ */
+static int
+rpmem_fip_persist_apm_no_drain(struct rpmem_fip *fip, size_t offset,
+	size_t len, unsigned lane)
+{
+	struct rpmem_fip_plane_apm *lanep = &fip->lanes[lane].apm;
+
+	int ret;
+	void *laddr = (void *)((uintptr_t)fip->laddr + offset);
+	uint64_t raddr = fip->raddr + offset;
+
+	// TODO is this needed?
+	//rpmem_fip_lane_begin(&lanep->base, FI_READ);
+
+	/* WRITE for requested memory region */
+	ret = rpmem_fip_writemsg(lanep->base.ep,
+			&lanep->write, laddr, len, raddr);
+	if (unlikely(ret)) {
+		RPMEM_FI_ERR(ret, "RMA write");
+		return ret;
+	}
+
+	return ret;
+}
+
+/*
  * rpmem_fip_gpspm_post_resp -- (internal) post persist response message buffer
  */
 static inline int
@@ -921,17 +949,53 @@ rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
 }
 
 /*
+ * rpmem_fip_persist_gpspm -- (internal) perform persist operation for GPSPM
+ */
+static int
+rpmem_fip_persist_gpspm_no_drain(struct rpmem_fip *fip, size_t offset,
+	size_t len, unsigned lane)
+{
+	struct rpmem_fip_plane_gpspm *lanep = &fip->lanes[lane].gpspm;
+	void *laddr = (void *)((uintptr_t)fip->laddr + offset);
+	uint64_t raddr = fip->raddr + offset;
+	struct rpmem_fip_plane_gpspm *gpspm = (void *)lanep;
+	int ret;
+
+	//TODO unnecessary, right?
+//	ret = rpmem_fip_lane_wait(fip, &lanep->base, FI_SEND);
+//	if (unlikely(ret)) {
+//		ERR("waiting for SEND completion failed");
+//		return ret;
+//	}
+
+	//TODO this as well, right
+//	rpmem_fip_lane_begin(&lanep->base, FI_RECV | FI_SEND);
+
+	/* WRITE for requested memory region */
+	ret = rpmem_fip_writemsg(lanep->base.ep,
+			&gpspm->write, laddr, len, raddr);
+	if (unlikely(ret)) {
+		RPMEM_FI_ERR((int)ret, "RMA write");
+		return ret;
+	}
+
+	return 0;
+}
+
+/*
  * rpmem_fip_ops -- some operations specific for persistency method used
  */
 static struct rpmem_fip_ops rpmem_fip_ops[MAX_RPMEM_PM] = {
 	[RPMEM_PM_GPSPM] = {
 		.persist = rpmem_fip_persist_gpspm,
+		.persist_no_drain = rpmem_fip_persist_gpspm_no_drain,
 		.lanes_init = rpmem_fip_init_lanes_gpspm,
 		.lanes_fini = rpmem_fip_fini_lanes_gpspm,
 		.lanes_post = rpmem_fip_post_lanes_gpspm,
 	},
 	[RPMEM_PM_APM] = {
 		.persist = rpmem_fip_persist_apm,
+		.persist_no_drain = rpmem_fip_persist_apm_no_drain,
 		.lanes_init = rpmem_fip_init_lanes_apm,
 		.lanes_fini = rpmem_fip_fini_lanes_apm,
 		.lanes_post = rpmem_fip_post_lanes_apm,
@@ -1087,6 +1151,43 @@ rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 			len : fip->fi->ep_attr->max_msg_size;
 
 		ret = fip->ops->persist(fip, offset, tmp_len, lane);
+		if (ret) {
+			RPMEM_LOG(ERR, "persist operation failed");
+			goto err;
+		}
+
+		offset += tmp_len;
+		len -= tmp_len;
+	}
+err:
+	return ret;
+}
+
+/*
+ * rpmem_fip_persist -- perform remote persist operation
+ */
+int
+rpmem_fip_persist_no_drain(struct rpmem_fip *fip, size_t offset, size_t len,
+	unsigned lane)
+{
+	RPMEM_ASSERT(lane < fip->nlanes);
+	if (unlikely(lane >= fip->nlanes))
+		return EINVAL; /* it will be passed to errno */
+
+	if (unlikely(offset + len > fip->size))
+		return EINVAL; /* it will be passed to errno */
+
+	if (unlikely(len == 0)) {
+		return 0;
+	}
+
+
+	int ret = 0;
+	while (len > 0) {
+		size_t tmp_len = len < fip->fi->ep_attr->max_msg_size ?
+			len : fip->fi->ep_attr->max_msg_size;
+
+		ret = fip->ops->persist_no_drain(fip, offset, tmp_len, lane);
 		if (ret) {
 			RPMEM_LOG(ERR, "persist operation failed");
 			goto err;
