@@ -41,10 +41,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
+#include <functional>
 #include <sys/file.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <functional>
 
 #include "benchmark.hpp"
 #include "libpmem.h"
@@ -59,19 +59,20 @@
 #define ALIGN_CL(x) (((x) + CL_ALIGNMENT - 1) & ~(CL_ALIGNMENT - 1))
 
 struct log_pool {
-	uint64_t write_offset;	  /* the current write offset */
+	uint64_t write_offset; /* the current write offset */
 };
 
-std::function<int (RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)> persist_fn;
+std::function<int(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)>
+	persist_fn;
 
 /*
  * rpmem_args -- benchmark specific command line options
  */
 struct rpmem_args {
-	char *mode;	   /* operation mode: stat, seq, rand */
+	char *mode;	/* operation mode: stat, seq, rand */
 	bool no_warmup;    /* do not do warmup */
 	bool no_memset;    /* do not call memset before each persist */
-	bool no_drain;	   /* do not force order on remote node for user data */
+	bool no_drain;     /* do not force order on remote node for user data */
 	size_t chunk_size; /* elementary chunk size */
 	size_t dest_off;   /* destination address offset */
 };
@@ -82,14 +83,16 @@ struct rpmem_args {
 struct rpmem_bench {
 	struct rpmem_args *pargs; /* benchmark specific arguments */
 	int const_b;		  /* memset() value */
+	size_t *offsets;	  /* address data offsets */
+	size_t *f_offsets;	/* address offsets for the log offset*/
+	size_t n_offsets;	 /* number of random elements */
 	size_t min_size;	  /* minimum file size */
 	void *addrp;		  /* mapped file address */
 	void *pool;		  /* memory pool address */
-	size_t pool_size;	  /* size of memory pool */
-	uint64_t max_offset;	  /* the max write offset */
-	size_t mapped_len;	  /* mapped length */
+	size_t pool_size;	 /* size of memory pool */
+	size_t mapped_len;	/* mapped length */
 	RPMEMpool **rpp;	  /* rpmem pool pointers */
-	unsigned *nlanes;	  /* number of lanes for each remote replica */
+	unsigned *nlanes;	 /* number of lanes for each remote replica */
 	unsigned nreplicas;       /* number of remote replicas */
 	size_t csize_align;       /* aligned elementary chunk size */
 };
@@ -99,7 +102,8 @@ struct rpmem_bench {
  */
 enum operation_mode {
 	OP_MODE_UNKNOWN,
-	OP_MODE_SEQ,       /* use consecutive chunks */
+	OP_MODE_SEQ,      /* use consecutive chunks */
+	OP_MODE_SEQ_WRAP, /* use consequtive chunks, but use file size */
 };
 
 /*
@@ -121,12 +125,52 @@ static int
 init_offsets(struct benchmark_args *args, struct rpmem_bench *mb,
 	     enum operation_mode op_mode)
 {
-	// todo
-	assert(args->n_threads == 1);
+	size_t n_ops_by_size = mb->pool_size /
+		(args->n_threads * (mb->csize_align + sizeof(log_pool)));
 
-	mb->max_offset = mb->pool_size;
-	log_pool *lpp = static_cast<log_pool *>(mb->pool);
-	lpp->write_offset = sizeof(log_pool);
+	mb->n_offsets = args->n_ops_per_thread * args->n_threads;
+	mb->offsets = (size_t *)malloc(mb->n_offsets * sizeof(*mb->offsets));
+	if (!mb->offsets) {
+		perror("malloc");
+		return -1;
+	}
+
+	mb->f_offsets =
+		(size_t *)malloc(args->n_threads * sizeof(*mb->f_offsets));
+	if (!mb->f_offsets) {
+		perror("malloc");
+		free(mb->offsets);
+		return -1;
+	}
+
+	size_t chunk_idx = 0;
+	for (size_t i = 0; i < args->n_threads; i++) {
+
+		for (size_t j = 0; j < args->n_ops_per_thread; j++) {
+			size_t off_idx = i * args->n_ops_per_thread + j;
+			switch (op_mode) {
+				case OP_MODE_SEQ:
+					chunk_idx =
+						i * args->n_ops_per_thread + j;
+					mb->f_offsets[i] = i *
+						args->n_ops_per_thread *
+						mb->csize_align;
+					break;
+				case OP_MODE_SEQ_WRAP:
+					chunk_idx = i * n_ops_by_size +
+						j % n_ops_by_size;
+					mb->f_offsets[i] = i * n_ops_by_size *
+						mb->csize_align;
+					break;
+				default:
+					assert(0);
+					return -1;
+			}
+
+			mb->offsets[off_idx] = chunk_idx * mb->csize_align +
+				mb->pargs->dest_off + sizeof(log_pool);
+		}
+	}
 
 	return 0;
 }
@@ -162,17 +206,15 @@ rpmem_op(struct benchmark *bench, struct operation_info *info)
 	struct rpmem_bench *mb =
 		(struct rpmem_bench *)pmembench_get_priv(bench);
 
-	size_t len = mb->pargs->chunk_size;
-	log_pool *lpp = static_cast<log_pool *>(mb->pool);
+	assert(info->index < mb->n_offsets);
 
-	// todo cleanup return value?
-	if (lpp->write_offset + len > mb->max_offset) {
-		fprintf(stderr, "No space left on device");
-		return -1;
-	}
+	uint64_t idx = info->worker->index * info->args->n_ops_per_thread +
+		info->index;
+	size_t offset = mb->offsets[idx];
+	size_t len = mb->pargs->chunk_size;
 
 	if (!mb->pargs->no_memset) {
-		void *dest = (char *)mb->pool + lpp->write_offset;
+		void *dest = (char *)mb->pool + offset;
 		/* thread id on MS 4 bits and operation id on LS 4 bits */
 		int c = ((info->worker->index & 0xf) << 4) +
 			((0xf & info->index));
@@ -183,8 +225,7 @@ rpmem_op(struct benchmark *bench, struct operation_info *info)
 	for (unsigned r = 0; r < mb->nreplicas; ++r) {
 		assert(info->worker->index < mb->nlanes[r]);
 
-		ret = persist_fn(mb->rpp[r], lpp->write_offset, len,
-				    info->worker->index);
+		ret = persist_fn(mb->rpp[r], offset, len, info->worker->index);
 		if (ret) {
 			fprintf(stderr, "rpmem_persist replica #%u: %s\n", r,
 				rpmem_errormsg());
@@ -193,12 +234,14 @@ rpmem_op(struct benchmark *bench, struct operation_info *info)
 	}
 
 	// update the write offset, always ordered
-	lpp->write_offset += len;
+	log_pool *pp = (log_pool *)((uintptr_t)mb->pool + mb->f_offsets[idx]);
+	pp->write_offset += len;
 
 	for (unsigned r = 0; r < mb->nreplicas; ++r) {
 		assert(info->worker->index < mb->nlanes[r]);
 
-		ret = rpmem_persist(mb->rpp[r], 0, sizeof(lpp->write_offset),
+		ret = rpmem_persist(mb->rpp[r], mb->f_offsets[idx],
+				    sizeof(pp->write_offset),
 				    info->worker->index);
 		if (ret) {
 			fprintf(stderr, "rpmem_persist replica #%u: %s\n", r,
@@ -206,7 +249,6 @@ rpmem_op(struct benchmark *bench, struct operation_info *info)
 			return ret;
 		}
 	}
-
 
 	return 0;
 }
@@ -535,7 +577,7 @@ pmem_rpmem_log(void)
 			   "operation in a log configuration";
 	rpmem_info.init = rpmem_init;
 	rpmem_info.exit = rpmem_exit;
-	rpmem_info.multithread = false;
+	rpmem_info.multithread = true;
 	rpmem_info.multiops = true;
 	rpmem_info.operation = rpmem_op;
 	rpmem_info.measure_time = true;
