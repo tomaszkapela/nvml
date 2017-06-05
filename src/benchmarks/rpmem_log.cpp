@@ -114,6 +114,8 @@ parse_op_mode(const char *arg)
 {
 	if (strcmp(arg, "seq") == 0)
 		return OP_MODE_SEQ;
+	else if (strcmp(arg, "seq_wrap") == 0)
+		return OP_MODE_SEQ_WRAP;
 	else
 		return OP_MODE_UNKNOWN;
 }
@@ -125,8 +127,8 @@ static int
 init_offsets(struct benchmark_args *args, struct rpmem_bench *mb,
 	     enum operation_mode op_mode)
 {
-	size_t n_ops_by_size = mb->pool_size /
-		(args->n_threads * (mb->csize_align + sizeof(log_pool)));
+	size_t n_ops_by_size = (mb->pool_size - args->n_threads * sizeof(log_pool)) /
+		(args->n_threads * mb->csize_align);
 
 	mb->n_offsets = args->n_ops_per_thread * args->n_threads;
 	mb->offsets = (size_t *)malloc(mb->n_offsets * sizeof(*mb->offsets));
@@ -157,8 +159,7 @@ init_offsets(struct benchmark_args *args, struct rpmem_bench *mb,
 						mb->csize_align;
 					break;
 				case OP_MODE_SEQ_WRAP:
-					chunk_idx = i * n_ops_by_size +
-						j % n_ops_by_size;
+					chunk_idx = j % n_ops_by_size;
 					mb->f_offsets[i] = i * n_ops_by_size *
 						mb->csize_align;
 					break;
@@ -167,8 +168,7 @@ init_offsets(struct benchmark_args *args, struct rpmem_bench *mb,
 					return -1;
 			}
 
-			mb->offsets[off_idx] = chunk_idx * mb->csize_align +
-				mb->pargs->dest_off + sizeof(log_pool);
+			mb->offsets[off_idx] = mb->f_offsets[i] + chunk_idx * mb->csize_align + sizeof(log_pool);
 		}
 	}
 
@@ -234,13 +234,13 @@ rpmem_op(struct benchmark *bench, struct operation_info *info)
 	}
 
 	// update the write offset, always ordered
-	log_pool *pp = (log_pool *)((uintptr_t)mb->pool + mb->f_offsets[idx]);
+	log_pool *pp = (log_pool *)((uintptr_t)mb->pool + mb->f_offsets[info->worker->index]);
 	pp->write_offset += len;
 
 	for (unsigned r = 0; r < mb->nreplicas; ++r) {
 		assert(info->worker->index < mb->nlanes[r]);
 
-		ret = rpmem_persist(mb->rpp[r], mb->f_offsets[idx],
+		ret = rpmem_persist(mb->rpp[r], mb->f_offsets[info->worker->index],
 				    sizeof(pp->write_offset),
 				    info->worker->index);
 		if (ret) {
@@ -438,7 +438,8 @@ rpmem_set_min_size(struct rpmem_bench *mb, enum operation_mode op_mode,
 
 	switch (op_mode) {
 		case OP_MODE_SEQ:
-			mb->min_size = mb->csize_align + sizeof(log_pool);
+		case OP_MODE_SEQ_WRAP:
+			mb->min_size = args->n_threads * (mb->csize_align + sizeof(log_pool));
 			break;
 		default:
 			assert(0);
