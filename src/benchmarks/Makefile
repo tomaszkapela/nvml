@@ -131,7 +131,8 @@ CXXFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 
 ifeq ($(BUILD_RPMEM),y)
 SRC += rpmem_persist.cpp\
-       rpmem_log.cpp
+       rpmem_log.cpp\
+       rpmem_read.cpp
 
 LIBS += -lrpmem $(shell pkg-config --libs libfabric)
 CONFIGS += pmembench_rpmem
