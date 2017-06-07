@@ -179,6 +179,14 @@ struct rpmem_fip {
 	void *raw_mr_desc;		/* RAW memory descriptor */
 };
 
+struct rpmem_read_ctx {
+	size_t rd_buff_len;
+	void *rd_buff;		/* buffer for read operation */
+	struct fid_mr *rd_mr;	/* read buffer memory region */
+	void *rd_mr_desc;	/* read buffer memory descriptor */
+	struct rpmem_fip_rlane rd_lane;
+};
+
 /*
  * rpmem_fip_lane_begin -- (internal) intialize list of events for lane
  */
@@ -1198,6 +1206,113 @@ rpmem_fip_persist_no_drain(struct rpmem_fip *fip, size_t offset, size_t len,
 	}
 err:
 	return ret;
+}
+
+struct rpmem_read_ctx*
+rpmem_prepare_read(struct rpmem_fip *fip, size_t len)
+{
+	struct rpmem_read_ctx *ret = malloc(sizeof(*ret));
+	if (ret == NULL)
+		return ret;
+
+	ret->rd_buff_len = len < fip->fi->ep_attr->max_msg_size ?
+		len : fip->fi->ep_attr->max_msg_size;
+
+	/* allocate buffer for read operation */
+	errno = posix_memalign((void **)&ret->rd_buff, Pagesize,
+			ret->rd_buff_len);
+	if (errno) {
+		RPMEM_LOG(ERR, "!allocating read buffer");
+
+		goto err_malloc_rd_buff;
+	}
+
+	/*
+	 * Register buffer for read operation.
+	 * The read operation utilizes READ operation thus
+	 * the FI_REMOTE_WRITE flag.
+	 */
+	ret = fi_mr_reg(fip->domain, ret->rd_buff,
+			ret->rd_buff_len, FI_REMOTE_WRITE,
+			0, 0, 0, &ret->rd_mr, NULL);
+	if (ret) {
+		RPMEM_FI_ERR(ret, "registrating read buffer");
+		goto err_rd_mr;
+	}
+
+	/* get read buffer local memory descriptor */
+	ret->rd_mr_desc = fi_mr_desc(ret->rd_mr);
+
+	/*
+	 * Initialize READ message. The completion is required in order
+	 * to signal thread that READ operation has been completed.
+	 */
+	rpmem_fip_rma_init(&ret->rd_lane.read, ret->rd_mr_desc, 0,
+			fip->rkey, &ret->rd_lane, FI_COMPLETION);
+
+	return ret;
+
+err_rd_mr:
+	free(ret->rd_buff);
+err_malloc_rd_buff:
+	free(ret);
+
+	return NULL;
+}
+
+int
+rpmem_opt_read(struct rpmem_fip *fip, void *buff, size_t len,
+		size_t off, unsigned lane, struct rpmem_read_ctx* ctx)
+{
+	RPMEM_ASSERT(lane < fip->nlanes);
+	if (unlikely(lane >= fip->nlanes)) {
+		errno = EINVAL;
+		return EINVAL;
+	}
+
+	int ret = 0;
+	size_t rd = 0;
+	uint8_t *cbuff = buff;
+	struct rpmem_fip_lane *lanep = &fip->lanes[lane].base;
+
+	while (rd < len) {
+		size_t rd_len = len - rd < ctx->rd_buff_len ?
+				len - rd : ctx->rd_buff_len;
+		size_t rd_off = off + rd;
+		uint64_t raddr = fip->raddr + rd_off;
+
+		rpmem_fip_lane_begin(lanep, FI_READ);
+
+		ret = rpmem_fip_readmsg(lanep->ep, &ctx->rd_lane.read,
+				ctx->rd_buff, rd_len, raddr);
+		if (ret) {
+			RPMEM_FI_ERR(ret, "RMA read");
+			goto err;
+		}
+
+		VALGRIND_DO_MAKE_MEM_DEFINED(ctx->rd_buff, rd_len);
+
+		ret = rpmem_fip_lane_wait(fip, lanep, FI_READ);
+		if (ret) {
+			ERR("error when processing read request");
+			goto err;
+		}
+
+		memcpy(&cbuff[rd], ctx->rd_buff, rd_len);
+
+		rd += rd_len;
+	}
+
+err:
+	return ret;
+}
+
+void
+rpmem_finish_read(struct rpmem_read_ctx* ctx)
+{
+	RPMEM_FI_CLOSE(ctx->rd_mr, "unregistering memory");
+	free(ctx->rd_buff);
+	free(ctx);
 }
 
 /*

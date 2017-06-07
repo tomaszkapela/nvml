@@ -44,6 +44,9 @@ LIBRPMEM_0.1 {
 		rpmem_read;
 		rpmem_check_version;
 		rpmem_errormsg;
+		rpmem_prepare_read;
+		rpmem_opt_read;
+		rpmem_finish_read;
 	local:
 		*;
 };

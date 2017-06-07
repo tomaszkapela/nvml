@@ -51,6 +51,9 @@ extern "C" {
 
 typedef struct rpmem_pool RPMEMpool;
 
+// forward declaration
+struct rpmem_read_ctx;
+
 #define RPMEM_POOL_HDR_SIG_LEN	8
 #define RPMEM_POOL_HDR_UUID_LEN	16 /* uuid byte length */
 #define RPMEM_POOL_USER_FLAGS_LEN 16
@@ -106,6 +109,13 @@ const char *rpmem_check_version(unsigned major_required,
 		unsigned minor_required);
 
 const char *rpmem_errormsg(void);
+
+struct rpmem_read_ctx *rpmem_prepare_read(struct rpmem_fip *fip, size_t len);
+
+int rpmem_opt_read(struct rpmem_fip *fip, void *buff, size_t len,
+		size_t off, unsigned lane, struct rpmem_read_ctx* ctx);
+
+void rpmem_finish_read(struct rpmem_read_ctx* ctx);
 
 /* minimum size of a pool */
 #define RPMEM_MIN_POOL ((size_t)(1024 * 8)) /* 8 KB */
