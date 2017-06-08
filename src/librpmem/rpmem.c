@@ -553,7 +553,7 @@ int
 rpmem_opt_read(RPMEMpool *rpp, void *buff, size_t len,
 		size_t off, unsigned lane, struct rpmem_read_ctx* ctx)
 {
-	return rpmem_fip_opt_read(rpp->fip, buff, len, off, lane, ctx);
+	return rpmem_fip_opt_read(rpp->fip, buff, off, len, lane, ctx);
 }
 
 /*
