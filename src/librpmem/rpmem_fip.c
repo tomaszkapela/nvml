@@ -1236,7 +1236,7 @@ rpmem_fip_prepare_read(struct rpmem_fip *fip, size_t len)
 			ret->rd_buff_len, FI_REMOTE_WRITE,
 			0, 0, 0, &ret->rd_mr, NULL);
 	if (err) {
-		RPMEM_FI_ERR(err, "registrating read buffer");
+		RPMEM_FI_ERR(err, "registering read buffer");
 		goto err_rd_mr;
 	}
 

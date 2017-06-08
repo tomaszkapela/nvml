@@ -203,7 +203,10 @@ rpmem_init_worker(struct benchmark *bench, struct benchmark_args *args,
 			(struct rpmem_bench *)pmembench_get_priv(bench);
 	for (unsigned r = 0; r < mb->nreplicas; ++r) {
 		mb->ctxs[worker->index + r] = rpmem_prepare_read(mb->rpp[r], mb->pargs->chunk_size);
+		if (mb->ctxs[worker->index + r] == NULL)
+			return -1;
 	}
+	return 0;
 }
 
 void
@@ -213,7 +216,7 @@ rpmem_free_worker(struct benchmark *bench, struct benchmark_args *args,
 	struct rpmem_bench *mb =
 			(struct rpmem_bench *)pmembench_get_priv(bench);
 	for (unsigned r = 0; r < mb->nreplicas; ++r) {
-		mb->ctxs[worker->index + r] = rpmem_finish_read(mb->ctxs[worker->index + r]);
+		rpmem_finish_read(mb->ctxs[worker->index + r]);
 	}
 }
 
