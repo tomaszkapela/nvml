@@ -74,6 +74,7 @@ struct rpmem_bench {
 	struct rpmem_args *pargs; /* benchmark specific arguments */
 	size_t *offsets;	  /* random/sequential address offsets */
 	size_t n_offsets;	 /* number of random elements */
+	struct rpmem_read_ctx **ctxs; /* rpmem read op contexts */
 	int const_b;		  /* memset() value */
 	size_t min_size;	  /* minimum file size */
 	void *addrp;		  /* mapped file address */
@@ -194,6 +195,28 @@ do_warmup(struct rpmem_bench *mb)
 	return 0;
 }
 
+int
+rpmem_init_worker(struct benchmark *bench, struct benchmark_args *args,
+			   struct worker_info *worker)
+{
+	struct rpmem_bench *mb =
+			(struct rpmem_bench *)pmembench_get_priv(bench);
+	for (unsigned r = 0; r < mb->nreplicas; ++r) {
+		mb->ctxs[worker->index + r] = rpmem_prepare_read(mb->rpp[r], mb->pargs->chunk_size);
+	}
+}
+
+void
+rpmem_free_worker(struct benchmark *bench, struct benchmark_args *args,
+			    struct worker_info *worker)
+{
+	struct rpmem_bench *mb =
+			(struct rpmem_bench *)pmembench_get_priv(bench);
+	for (unsigned r = 0; r < mb->nreplicas; ++r) {
+		mb->ctxs[worker->index + r] = rpmem_finish_read(mb->ctxs[worker->index + r]);
+	}
+}
+
 /*
  * rpmem_op -- actual benchmark operation
  */
@@ -215,8 +238,8 @@ rpmem_op(struct benchmark *bench, struct operation_info *info)
 	for (unsigned r = 0; r < mb->nreplicas; ++r) {
 		assert(info->worker->index < mb->nlanes[r]);
 
-		ret = rpmem_read(mb->rpp[r], buff, offset, len,
-				    info->worker->index);
+		ret = rpmem_opt_read(mb->rpp[r], buff, offset, len,
+				    info->worker->index, mb->ctxs[info->worker->index + r]);
 		if (ret) {
 			fprintf(stderr, "rpmem_persist replica #%u: %s\n", r,
 				rpmem_errormsg());
@@ -342,6 +365,12 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 		goto err_free_lanes;
 	}
 
+	mb->ctxs = (struct rpmem_read_ctx **)malloc(mb->nreplicas * args->n_threads * sizeof(struct rpmem_read_ctx *));
+	if (mb->ctxs == NULL) {
+		perror("malloc");
+		goto err_free_rpps;
+	}
+
 	unsigned r;
 	for (r = 0; r < mb->nreplicas; ++r) {
 		remote = set->replica[r + 1]->remote;
@@ -375,6 +404,8 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 err_rpmem_close:
 	for (unsigned i = 0; i < r; i++)
 		rpmem_close(mb->rpp[i]);
+
+err_free_rpps:
 	free(mb->rpp);
 
 err_free_lanes:
@@ -546,6 +577,8 @@ pmem_rpmem_persist(void)
 			   "operation";
 	rpmem_info.init = rpmem_init;
 	rpmem_info.exit = rpmem_exit;
+	rpmem_info.init_worker = rpmem_init_worker;
+	rpmem_info.free_worker = rpmem_free_worker;
 	rpmem_info.multithread = true;
 	rpmem_info.multiops = true;
 	rpmem_info.operation = rpmem_op;
