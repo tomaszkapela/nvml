@@ -543,6 +543,19 @@ err_common_init:
 	return NULL;
 }
 
+struct rpmem_read_ctx*
+rpmem_prepare_read(RPMEMpool *rpp, size_t len)
+{
+	return rpmem_fip_prepare_read(rpp->fip, len);
+}
+
+int
+rpmem_opt_read(RPMEMpool *rpp, void *buff, size_t len,
+		size_t off, unsigned lane, struct rpmem_read_ctx* ctx)
+{
+	return rpmem_fip_opt_read(rpp->fip, buff, len, off, lane, ctx);
+}
+
 /*
  * rpmem_close -- close remote pool on target node
  */

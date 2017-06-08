@@ -68,3 +68,10 @@ int rpmem_fip_persist_no_drain(struct rpmem_fip *fip, size_t offset, size_t len,
 
 int rpmem_fip_read(struct rpmem_fip *fip, void *buff,
 		size_t len, size_t off, unsigned lane);
+
+struct rpmem_read_ctx*
+rpmem_fip_prepare_read(RPMEMpool *rpp, size_t len);
+
+int
+rpmem_fip_opt_read(RPMEMpool *rpp, void *buff, size_t len,
+		size_t off, unsigned lane, struct rpmem_read_ctx* ctx);

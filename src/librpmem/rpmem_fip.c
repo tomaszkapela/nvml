@@ -1209,9 +1209,8 @@ err:
 }
 
 struct rpmem_read_ctx*
-rpmem_prepare_read(RPMEMpool *rpp, size_t len)
+rpmem_fip_prepare_read(struct rpmem_fip *fip, size_t len)
 {
-	struct rpmem_fip *fip = rpp->fip;
 	struct rpmem_read_ctx *ret = malloc(sizeof(*ret));
 	if (ret == NULL)
 		return ret;
@@ -1262,10 +1261,9 @@ err_malloc_rd_buff:
 }
 
 int
-rpmem_opt_read(RPMEMpool *rpp, void *buff, size_t len,
+rpmem_fip_opt_read(struct rpmem_fip *fip, void *buff, size_t len,
 		size_t off, unsigned lane, struct rpmem_read_ctx* ctx)
 {
-	struct rpmem_fip *fip = rpp->fip;
 	RPMEM_ASSERT(lane < fip->nlanes);
 	if (unlikely(lane >= fip->nlanes)) {
 		errno = EINVAL;
