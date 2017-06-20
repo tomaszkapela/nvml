@@ -267,6 +267,18 @@ read_flushed(void *addr, size_t data_size)
 	return 0;
 }
 
+static int
+ntstore(void *addr, size_t data_size)
+{
+	for (size_t i = 0; i < FSIZE; i += CACHELINE) {
+		long long *caddr = (long long *)(addr);
+		_mm_stream_si64(caddr, DATA);
+		_mm_sfence();
+	}
+
+	return 0;
+}
+
 typedef int scenario_func(void *addr, size_t data_size);
 
 struct scenario {
@@ -289,6 +301,7 @@ static struct scenario scenarios[] = {
 	SCENARIO(ntmemcpy_clflush),
 	SCENARIO(ntmemcpy_clflushopt),
 	SCENARIO(read_flushed),
+	SCENARIO(ntstore),
 	{NULL, NULL}
 };
 
