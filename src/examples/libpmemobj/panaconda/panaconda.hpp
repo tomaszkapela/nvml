@@ -211,10 +211,10 @@ class game {
 public:
 	game(struct parameters *par);
 	~game();
-	int init(void);
+	void init(void);
 	void init_colors(void);
 	void process_step(void);
-	int process_key(const int lastkey);
+	void process_key(const int lastkey);
 	inline bool is_stopped(void);
 	void process_delay(void);
 	void clear_screen(void);
