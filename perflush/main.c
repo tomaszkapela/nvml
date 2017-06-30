@@ -42,6 +42,7 @@
 #include <assert.h>
 #include <time.h>
 #include <emmintrin.h>
+#include <immintrin.h>
 
 #define ASIZE(array)  (sizeof(array) / sizeof((array)[0]))
 #define ALIGN(val, alignment) ((val) + ((alignment)-1) & ((alignment) - 1))
@@ -279,6 +280,19 @@ ntstore(void *addr, size_t data_size)
 	return 0;
 }
 
+static int
+avxstore(void *addr, size_t data_size)
+{
+	__m512i vec = _mm512_set1_epi64(1);
+	for (size_t i = 0; i < FSIZE; i += CACHELINE) {
+		__m512i *caddr = (__m512i *)(addr);
+		_mm512_stream_si512(caddr, vec);
+		_mm_sfence();
+	}
+
+	return 0;
+}
+
 typedef int scenario_func(void *addr, size_t data_size);
 
 struct scenario {
@@ -302,6 +316,7 @@ static struct scenario scenarios[] = {
 	SCENARIO(ntmemcpy_clflushopt),
 	SCENARIO(read_flushed),
 	SCENARIO(ntstore),
+	SCENARIO(avxstore),
 	{NULL, NULL}
 };
 
